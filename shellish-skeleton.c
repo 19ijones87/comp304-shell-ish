@@ -379,12 +379,26 @@ int process_command(struct command_t *command) {
 
     // TODO: do your own exec with path resolving using execv()
     // do so by replacing the execvp call below
-    execvp(command->name, command->args); // exec+args+path
-    printf("-%s: %s: command not found\n", sysname, command->name);
-    exit(127);
+    
+    	char *file_path = find_program_path(command->name);
+    	if(file_path != NULL){
+    		execv(file_path, command->args);
+
+		perror("execv failed"); //if execv successfully works, then this line will not be executed
+		free(file_path);
+    	} 
+    	else{
+    	
+    //execvp(command->name, command->args); // exec+args+path
+    		printf("-%s: %s: command not found\n", sysname, command->name);
+    	}	
+    	exit(127);
+
   } else {
     // TODO: implement background processes here
-    wait(0); // wait for child process to finish
+    if(!command->background){
+   	wait(0); // wait for child process to finish
+    }
     return SUCCESS;
   }
 }
