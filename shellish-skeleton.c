@@ -310,6 +310,20 @@ int prompt(struct command_t *command) {
 
 //helper function to locate the executable in PATH
 char *find_program_path(char *command){
+	
+	if(strchr(command, '/')){
+		if(access(command, X_OK)==0){
+			char *filepath_ret = malloc(strlen(command) + 1);
+			if(filepath_ret != NULL){
+				strcpy(filepath_ret, command);
+				return filepath_ret;
+
+			}
+		}
+		return NULL,
+		
+	}
+
 
 	char *path = getenv("PATH");
 	if (path == NULL) return NULL;
@@ -344,7 +358,7 @@ char *find_program_path(char *command){
 	}
 	free(path_copy);
 	return NULL; //could not find the command anywhere
-
+}
 
 
 
@@ -397,8 +411,10 @@ int process_command(struct command_t *command) {
   } else {
     // TODO: implement background processes here
     if(!command->background){
-   	wait(0); // wait for child process to finish
+   	waitpid(pid, NULL, 0); // wait for child process to finish
     }
+
+    while(waitpid(-1, NULL, WHOHANG)>0);
     return SUCCESS;
   }
 }
