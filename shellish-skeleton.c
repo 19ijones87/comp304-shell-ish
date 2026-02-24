@@ -320,7 +320,7 @@ char *find_program_path(char *command){
 
 			}
 		}
-		return NULL,
+		return NULL;
 		
 	}
 
@@ -414,7 +414,7 @@ int process_command(struct command_t *command) {
    	waitpid(pid, NULL, 0); // wait for child process to finish
     }
 
-    while(waitpid(-1, NULL, WHOHANG)>0);
+    while(waitpid(-1, NULL, WNOHANG)>0);
     return SUCCESS;
   }
 }
