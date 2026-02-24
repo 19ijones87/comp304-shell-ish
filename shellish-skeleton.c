@@ -306,6 +306,48 @@ int prompt(struct command_t *command) {
   return SUCCESS;
 }
 
+
+
+//helper function to locate the executable in PATH
+char *find_program_path(char *command){
+
+	char *path = getenv("PATH");
+	if (path == NULL) return NULL;
+
+	char *path_copy = malloc(strlen(path) + 1);
+
+	if(path_copy == NULL) return NULL;
+	strcpy(path_copy, path);
+
+
+	char *token = strtok(path_copy, ":");
+	char filepath[1024];
+
+	while(token != NULL){
+		strcpy(filepath, token);
+		strcat(filepath, "/");
+		strcat(filepath, command);
+
+
+		if(access(filepath, X_OK) == 0){
+			char *filepath_ret = malloc(strlen(filepath) + 1);
+			if(filepath_ret != NULL){
+				strcpy(filepath_ret, filepath);
+			}
+
+			free(path_copy);
+			return filepath_ret;
+		}
+
+		token = strtok(NULL, ":");
+
+	}
+	free(path_copy);
+	return NULL; //could not find the command anywhere
+
+
+
+
 int process_command(struct command_t *command) {
   int r;
   if (strcmp(command->name, "") == 0)
@@ -323,6 +365,7 @@ int process_command(struct command_t *command) {
     }
   }
 
+ 
   pid_t pid = fork();
   if (pid == 0) // child
   {
