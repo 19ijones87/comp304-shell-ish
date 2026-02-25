@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <termios.h> // termios, TCSANOW, ECHO, ICANON
 #include <unistd.h>
+#include <fcntl.h>
+
 const char *sysname = "shellish";
 
 enum return_codes {
@@ -408,7 +410,7 @@ int process_command(struct command_t *command) {
 		close(fd);
 	}
 
-	if(command->redirection[2] != NULL){
+	if(command->redirects[2] != NULL){
 		int fd = open(command->redirects[2], O_WRONLY | O_CREAT | O_APPEND, 0644);
 		if(fd<0) exit(1);
 		dup2(fd, STDOUT_FILENO);
