@@ -393,7 +393,28 @@ int process_command(struct command_t *command) {
 
     // TODO: do your own exec with path resolving using execv()
     // do so by replacing the execvp call below
-    
+	
+	if(command->redirects[0] != NULL){
+		int fd = open(command->redirects[0], O_RDONLY);
+		if(fd <0) exit(1);
+		dup2(fd, STDIN_FILENO);
+		close(fd);
+	}
+
+	if(command->redirects[1] != NULL){
+		int fd = open(command->redirects[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if(fd<0) exit(1);
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
+	}
+
+	if(command->redirection[2] != NULL){
+		int fd = open(command->redirects[2], O_WRONLY | O_CREAT | O_APPEND, 0644);
+		if(fd<0) exit(1);
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
+	}
+		  
     	char *file_path = find_program_path(command->name);
     	if(file_path != NULL){
     		execv(file_path, command->args);
