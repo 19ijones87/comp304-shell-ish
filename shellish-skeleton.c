@@ -366,11 +366,11 @@ char *find_program_path(char *command){
 void cut(struct command_t *command) {
 	char delimiter = '\t';
 	int fields[1000];
-	int filed_count = 0;
+	int field_count = 0;
 
 	int i;
 	for(i = 1; i<command->arg_count -1; i++){
-		if(strcmp(command->args[i], "-d" == 0 || strcmp(command->args[i], "--delimiter") == 0){
+		if(strcmp(command->args[i], "-d") == 0 || strcmp(command->args[i], "--delimiter") == 0){
 				if(i+1 < command->arg_count -1){
 					delimiter = command->args[i+1][0];
 					i++;
@@ -395,7 +395,7 @@ void cut(struct command_t *command) {
 	char line[4096];
 	char delim_str[2] = {delimiter, '\0'};
 	while(fgets(line, sizeof(line), stdin)){
-		line[strcspn(line, "n")] = 0;
+		line[strcspn(line, "\n")] = 0;
 
 		char *tokens[100];
 		int total_num_tokens= 0;
@@ -436,11 +436,23 @@ int process_command(struct command_t *command) {
   if (strcmp(command->name, "cd") == 0) {
     if (command->arg_count > 0) {
       r = chdir(command->args[1]);
-      if (r == -1)
+      if (r == -1){
         printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
       return SUCCESS;
     }
   }
+
+    int pipefd[2];
+    if(command->next){
+    	if(pipe(pipefd) == 1){
+		perror("pipe");
+		return UNKNOWN;
+	}
+    }
+
+ 
+  
+
 
  
   pid_t pid = fork();
@@ -456,7 +468,16 @@ int process_command(struct command_t *command) {
 
     // TODO: do your own exec with path resolving using execv()
     // do so by replacing the execvp call below
-	
+
+	if(command->next){
+		close(pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+	}
+
+
+
+
 	if(command->redirects[0] != NULL){
 		int fd = open(command->redirects[0], O_RDONLY);
 		if(fd <0) exit(1);
@@ -498,11 +519,33 @@ int process_command(struct command_t *command) {
 
   } else {
     // TODO: implement background processes here
-    if(!command->background){
-   	waitpid(pid, NULL, 0); // wait for child process to finish
-    }
+      if(command->next){
+      	close(pipefd[1]);
 
-    while(waitpid(-1, NULL, WNOHANG)>0);
+	int saved_stdin = dup(STDIN_FILENO);
+
+	dup2(pipefd[0], STDIN_FILENO);
+	close(pipefd[0]);
+
+	process_command(command->next);
+
+	dup2(saved_stdin, STDIN_FILENO);
+	close(saved_stdin);
+
+
+
+	waitpid(pid, NULL, 0);
+      }
+      else{
+
+	  
+      	if(!command->background){
+   		waitpid(pid, NULL, 0); // wait for child process to finish
+    	}
+      
+
+    	while(waitpid(-1, NULL, WNOHANG)>0);
+      }
     return SUCCESS;
   }
 }
