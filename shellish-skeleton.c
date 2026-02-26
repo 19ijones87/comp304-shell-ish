@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-
+#include <signal.h>
 
 const char *sysname = "shellish";
 
@@ -446,7 +446,7 @@ void chatroom(struct command_t *command){
 	char room_path[256];
 	char user_path[256];
 	sprintf(room_path, "/tmp/chatroom-%s", roomname);
-	sprintf(user_path, "%s%s", room_path, username);
+	sprintf(user_path, "%s/%s", room_path, username);
 
 	mkdir(room_path, 0777);
 	mkfifo(user_path, 0666);
@@ -454,19 +454,19 @@ void chatroom(struct command_t *command){
 
 	printf("Welcome to %s!\n", roomname);
 
-	pid_t receiver_oid = fork();
+	pid_t receiver_pid = fork();
 
 	if(receiver_pid == 0){
 		while(1){
 			int fd = open(user_path, O_RDONLY);
 			if(fd >= 0){
 				char buf[1024];
-				int n = read(fd, buf, sizeof(buf)-1;
+				int n = read(fd, buf, sizeof(buf)-1);
 						if(n>0){
 							buf[n] = '\0';
 							printf("%s\n", buf);
 						}
-						closer(fd);
+						close(fd);
 			}
 		}
 		exit(0);
@@ -481,7 +481,7 @@ void chatroom(struct command_t *command){
 
 		if(strcmp(message, "exit") == 0){
 			unlink(user_path);
-			kill(reeceiver_pid, SIGTERM);
+			kill(receiver_pid, SIGTERM);
 			exit(0);
 
 		}
@@ -501,7 +501,7 @@ void chatroom(struct command_t *command){
 						char final_message[2048];
 						sprintf(final_message, "[%s] %s: %s", roomname, username, message);
 						write(fd, final_message, strlen(final_message));
-						close(fd),
+						close(fd);
 					}
 
 
@@ -510,7 +510,7 @@ void chatroom(struct command_t *command){
 			}
 			closedir(d);
 
-			while(waitpid(-1, NULL, WHOHANG) >0);
+			while(waitpid(-1, NULL, WNOHANG) >0);
 		}
 	}
 
