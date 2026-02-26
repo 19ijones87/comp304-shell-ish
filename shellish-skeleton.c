@@ -623,6 +623,10 @@ int process_command(struct command_t *command) {
       if(command->next){
       	close(pipefd[1]);
 
+	if(command->background){
+		command->next->background = true;
+	}
+
 	int saved_stdin = dup(STDIN_FILENO);
 
 	dup2(pipefd[0], STDIN_FILENO);
@@ -633,9 +637,10 @@ int process_command(struct command_t *command) {
 	dup2(saved_stdin, STDIN_FILENO);
 	close(saved_stdin);
 
+	if(!command->bacground){
 
-
-	waitpid(pid, NULL, 0);
+		waitpid(pid, NULL, 0);
+	}
       }
       else{
 
