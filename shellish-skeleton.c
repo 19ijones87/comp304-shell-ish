@@ -7,6 +7,10 @@
 #include <termios.h> // termios, TCSANOW, ECHO, ICANON
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
 
 const char *sysname = "shellish";
 
@@ -429,6 +433,91 @@ void cut(struct command_t *command) {
 }
 
 
+void chatroom(struct command_t *command){
+	if(command->arg_count <3){
+		printf("Usage: chatroom <roomname> <username>\n");
+		exit(1);
+	}
+
+	char *roomname = command->args[1];
+	char *username = command->args[2];
+
+
+	char room_path[256];
+	char user_path[256];
+	sprintf(room_path, "/tmp/chatroom-%s", roomname);
+	sprintf(user_path, "%s%s", room_path, username);
+
+	mkdir(room_path, 0777);
+	mkfifo(user_path, 0666);
+
+
+	printf("Welcome to %s!\n", roomname);
+
+	pid_t receiver_oid = fork();
+
+	if(receiver_pid == 0){
+		while(1){
+			int fd = open(user_path, O_RDONLY);
+			if(fd >= 0){
+				char buf[1024];
+				int n = read(fd, buf, sizeof(buf)-1;
+						if(n>0){
+							buf[n] = '\0';
+							printf("%s\n", buf);
+						}
+						closer(fd);
+			}
+		}
+		exit(0);
+	}
+
+	char message[1024];
+	while(1){
+		printf("[%s] %s > ", roomname, username);
+		fflush(stdout);
+		if(fgets(message, sizeof(message), stdin) == NULL) break;
+		message[strcspn(message, "\n")] = 0;
+
+		if(strcmp(message, "exit") == 0){
+			unlink(user_path);
+			kill(reeceiver_pid, SIGTERM);
+			exit(0);
+
+		}
+
+		DIR *d = opendir(room_path);
+		if(d!= NULL){
+			struct dirent *dir;
+			while((dir = readdir(d)) != NULL){
+				if(dir->d_name[0] == '.' || strcmp(dir->d_name, username)==0) continue;
+
+				if(fork() == 0){
+					char other_user_path[512];
+					sprintf(other_user_path, "%s/%s", room_path, dir->d_name);
+
+					int fd = open(other_user_path, O_WRONLY);
+					if(fd >= 0){
+						char final_message[2048];
+						sprintf(final_message, "[%s] %s: %s", roomname, username, message);
+						write(fd, final_message, strlen(final_message));
+						close(fd),
+					}
+
+
+					exit(0);
+				}
+			}
+			closedir(d);
+
+			while(waitpid(-1, NULL, WHOHANG) >0);
+		}
+	}
+
+}
+
+
+
 int process_command(struct command_t *command) {
   int r;
   if (strcmp(command->name, "") == 0)
@@ -507,7 +596,14 @@ int process_command(struct command_t *command) {
        if(strcmp(command->name, "cut") == 0){
        		cut(command);
 		exit(0);
-       }	       
+
+       }	
+
+
+	if(strcmp(command->name, "chatroom") == 0){
+		chatroom(command);
+		exit(0);
+	}	
     	char *file_path = find_program_path(command->name);
     	if(file_path != NULL){
     		execv(file_path, command->args);
