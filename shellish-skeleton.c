@@ -417,11 +417,15 @@ void cut(struct command_t *command) {
 					printf("%c", delimiter);
 				}
 			}
-			printf("\n");
-			free(temp);
 		}
-
+			
+		printf("\n");
+			
+		free(temp);
 	}
+
+	
+
 }
 
 
@@ -438,13 +442,14 @@ int process_command(struct command_t *command) {
       r = chdir(command->args[1]);
       if (r == -1){
         printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
-      return SUCCESS;
+      }
+	return SUCCESS;
     }
   }
 
     int pipefd[2];
     if(command->next){
-    	if(pipe(pipefd) == 1){
+    	if(pipe(pipefd) == -1){
 		perror("pipe");
 		return UNKNOWN;
 	}
