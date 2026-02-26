@@ -363,6 +363,67 @@ char *find_program_path(char *command){
 }
 
 
+void cut(struct command_t *command) {
+	char delimiter = '\t';
+	int fields[1000];
+	int filed_count = 0;
+
+	int i;
+	for(i = 1; i<command->arg_count -1; i++){
+		if(strcmp(command->args[i], "-d" == 0 || strcmp(command->args[i], "--delimiter") == 0){
+				if(i+1 < command->arg_count -1){
+					delimiter = command->args[i+1][0];
+					i++;
+				
+			}
+	
+		}
+		else if(strcmp(command->args[i], "-f") == 0 || strcmp(command->args[i], "--fields") == 0){
+			if(i+1 < command->arg_count-1){
+				char *token = strtok(command->args[i+1], ",");
+				while(token != NULL){
+					fields[field_count++] = atoi(token);
+					token = strtok(NULL, ",");
+				}
+				i++;
+				}
+			}
+
+		}
+
+
+	char line[4096];
+	char delim_str[2] = {delimiter, '\0'};
+	while(fgets(line, sizeof(line), stdin)){
+		line[strcspn(line, "n")] = 0;
+
+		char *tokens[100];
+		int total_num_tokens= 0;
+		char *temp = strdup(line);
+		char *running = temp;
+		char *token;
+
+
+		while((token = strsep(&running, delim_str)) != NULL && total_num_tokens < 100){
+			tokens[total_num_tokens++] = token;
+		}
+
+		int j;
+		for(j = 0; j<field_count; j++){
+			int index = fields[j] -1;
+			if(index >= 0 && index<total_num_tokens){
+				printf("%s", tokens[index]);
+				if(j<field_count-1){
+					printf("%c", delimiter);
+				}
+			}
+			printf("\n");
+			free(temp);
+		}
+
+	}
+}
+
 
 int process_command(struct command_t *command) {
   int r;
@@ -416,7 +477,11 @@ int process_command(struct command_t *command) {
 		dup2(fd, STDOUT_FILENO);
 		close(fd);
 	}
-		  
+		 
+       if(strcmp(command->name, "cut") == 0){
+       		cut(command);
+		exit(0);
+       }	       
     	char *file_path = find_program_path(command->name);
     	if(file_path != NULL){
     		execv(file_path, command->args);
