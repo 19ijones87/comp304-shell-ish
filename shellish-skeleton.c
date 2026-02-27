@@ -518,6 +518,91 @@ void chatroom(struct command_t *command){
 
 
 
+void chor(struct command_t *command){
+	if(command->args[1] == NULL){
+		printf("A program to find out chords notes\n");
+		printf("Usage: chord <Root Note> <Quality>\n");
+		return;
+	}
+
+
+	char *notes[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+	int root_index = -1;
+	char *root = command->args[1];
+
+	int i;
+	for(i = 0; i<12; i++){
+		if(strcmp(root, notes[i]) == 0){
+			root_index = i;
+			break;
+		}
+	}
+
+	if(root_index = -1){
+		printf("Unknown note. If not, use uppercase letters.");
+
+	}
+
+
+	char *quality;
+	if(command->args[2] != NULL){
+		quality = command->args[2];
+	}
+	else{
+		quality = "maj";
+	}
+
+	int third, fifth;
+	char *intervals = "";
+	char *diatonic_role = "";
+
+	if(strcmp(quality, "maj") == 0 || strcmp(quality, "M") == 0){
+		third = (root_index + 4) % 12;
+		fifth = (root_index + 7) % 12;
+		intervals = "Major 3rd (4 semitones) + Perfect 5th (7 semitones)";
+		diatonic_role = "Tonic(I) or Subdominant(IV) or Dominant(V)";
+
+	}
+	else if( strcmp(quality, "min") == 0 || strcmp(quality, "m") == 0){
+		third = (root_index + 3) % 12;
+		fifth = (root_index + 7) % 12;
+		intervals = "Minor 3rd (3 semitones) + Perfect 5th (7 semitones);
+		diatonic_role = "Supertonic(ii) or Mediant(iii) or Submediant(vi)";
+	}
+
+	else if(strcmp(quality, "dim" == 0)){
+		third = (root_index + 3) % 12;
+		fifth = (root_index + 6)%12;
+		intervals = "Minor 3rd (3 semitones) + Diminishied 5th (6 semitones);
+		diatonic_role = "Leading tone (vii dim) or Supertonic in minor keys (ii dim)";
+
+	}
+
+	else if(strcmp(quality, "aug") ==0){
+		third = (root_index + 4) % 12;
+		fifth = (root_index + 8) % 12;
+		intervals = "Major 3rd (4 semitones) + Augmented 5th (8 semitones)";
+		diatonic_role = "I am not sure of it's role";
+	}
+	else{
+		printf("Unkown triad type");
+		return;
+	}
+
+	printf("\n Triad: %s %s\n", root, quality);
+	printf("-----------------------\n");
+	printf("Root (1): %s\n", notes[root_index]);
+	printf("Third (3): %s\n", notes[third]);
+	printf("Fifth (5): %s\n", notes[fifth]);
+	printf("-----------------------\n");
+	printf("Notes: %s - %s -%s\n", notes[root_index], notes[third], notes[fifth]);
+	printf("-----------------------\n");
+	printf("Intervals: %s\n", intervals);
+	printf("Role/Scale: %s\n\n", diatonic_role);
+
+}
+
+
 int process_command(struct command_t *command) {
   int r;
   if (strcmp(command->name, "") == 0)
@@ -604,6 +689,11 @@ int process_command(struct command_t *command) {
 		chatroom(command);
 		exit(0);
 	}	
+
+	if(strcmp(command->name, "chord") == 0){
+		chord(command);
+		exit(0);
+	}
     	char *file_path = find_program_path(command->name);
     	if(file_path != NULL){
     		execv(file_path, command->args);
