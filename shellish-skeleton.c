@@ -434,9 +434,9 @@ void cut(struct command_t *command) {
 
 
 void chatroom(struct command_t *command){
-	if(command->arg_count <3){
+	if(command->arg_s[1] == NULL || command_args[2] == NULL){
 		printf("Usage: chatroom <roomname> <username>\n");
-		exit(1);
+		return;
 	}
 
 	char *roomname = command->args[1];
@@ -637,7 +637,7 @@ int process_command(struct command_t *command) {
 	dup2(saved_stdin, STDIN_FILENO);
 	close(saved_stdin);
 
-	if(!command->bacground){
+	if(!command->background){
 
 		waitpid(pid, NULL, 0);
 	}
@@ -651,7 +651,7 @@ int process_command(struct command_t *command) {
       
 
     	while(waitpid(-1, NULL, WNOHANG)>0);
-      }
+      
     return SUCCESS;
   }
 }
