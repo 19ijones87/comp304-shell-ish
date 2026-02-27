@@ -434,7 +434,7 @@ void cut(struct command_t *command) {
 
 
 void chatroom(struct command_t *command){
-	if(command->arg_s[1] == NULL || command_args[2] == NULL){
+	if(command->args[1] == NULL || command->args[2] == NULL){
 		printf("Usage: chatroom <roomname> <username>\n");
 		return;
 	}
@@ -518,7 +518,7 @@ void chatroom(struct command_t *command){
 
 
 
-void chor(struct command_t *command){
+void chord(struct command_t *command){
 	if(command->args[1] == NULL){
 		printf("A program to find out chords notes\n");
 		printf("Usage: chord <Root Note> <Quality>\n");
@@ -566,14 +566,14 @@ void chor(struct command_t *command){
 	else if( strcmp(quality, "min") == 0 || strcmp(quality, "m") == 0){
 		third = (root_index + 3) % 12;
 		fifth = (root_index + 7) % 12;
-		intervals = "Minor 3rd (3 semitones) + Perfect 5th (7 semitones);
+		intervals = "Minor 3rd (3 semitones) + Perfect 5th (7 semitones)";
 		diatonic_role = "Supertonic(ii) or Mediant(iii) or Submediant(vi)";
 	}
 
-	else if(strcmp(quality, "dim" == 0)){
+	else if(strcmp(quality, "dim") == 0){
 		third = (root_index + 3) % 12;
 		fifth = (root_index + 6)%12;
-		intervals = "Minor 3rd (3 semitones) + Diminishied 5th (6 semitones);
+		intervals = "Minor 3rd (3 semitones) + Diminishied 5th (6 semitones)";
 		diatonic_role = "Leading tone (vii dim) or Supertonic in minor keys (ii dim)";
 
 	}
@@ -744,6 +744,7 @@ int process_command(struct command_t *command) {
       
     return SUCCESS;
   }
+}
 }
 
 int main() {
