@@ -538,7 +538,7 @@ void chord(struct command_t *command){
 		}
 	}
 
-	if(root_index = -1){
+	if(root_index == -1){
 		printf("Unknown note. If not, use uppercase letters.");
 
 	}
