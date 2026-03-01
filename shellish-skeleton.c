@@ -526,7 +526,7 @@ void chord(struct command_t *command){
 	}
 
 
-	char *notes[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+	char *notes[] = {"do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si"};
 	int root_index = -1;
 	char *root = command->args[1];
 
@@ -539,8 +539,8 @@ void chord(struct command_t *command){
 	}
 
 	if(root_index == -1){
-		printf("Unknown note. If not, use uppercase letters.");
-
+		printf("Unknown note. Please enter an appropriate note, e.g, do, do#...\n");
+		return;
 	}
 
 
@@ -585,7 +585,7 @@ void chord(struct command_t *command){
 		diatonic_role = "I am not sure of it's role";
 	}
 	else{
-		printf("Unkown triad type");
+		printf("Unkown triad type\n");
 		return;
 	}
 
